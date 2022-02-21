@@ -15,6 +15,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/Shopify/sarama"
 	"regexp"
 	"strings"
 	"time"
@@ -137,6 +138,8 @@ var (
 		Subject: `{{ template "sns.default.subject" . }}`,
 		Message: `{{ template "sns.default.message" . }}`,
 	}
+
+	DefaultKafkaConfig = KafkaConfig{}
 )
 
 // NotifierConfig contains base options common across all notifier configurations.
@@ -619,4 +622,93 @@ func (c *SNSConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return fmt.Errorf("must provide a AWS SigV4 Access key and Secret Key if credentials are specified in the SNS config")
 	}
 	return nil
+}
+
+type KafkaConfig struct {
+	NotifierConfig      `yaml:",inline" json:",inline"`
+	Brokers             []string        `json:"brokers" yaml:"brokers"`
+	Version             KafkaVersion    `json:"version" yaml:"version"`
+	MetadataTimeout     time.Duration   `json:"metadata_timeout" yaml:"metadata_timeout"`
+	KafkaNetConfig      *KafkaNetConfig `json:"kafka_net_config" yaml:"kafka_net_config"`
+	KafkaProducerConfig *Producer       `json:"kafka_producer_config" yaml:"kafka_producer_config"`
+	MaxAlerts           uint64          `json:"max_alerts,omitempty" yaml:"max_alerts,omitempty"`
+	Topic               string          `json:"topic" yaml:"topic"`
+}
+
+func (c *KafkaConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultKafkaConfig
+	type plain KafkaConfig
+	if err := unmarshal((*plain)(c)); err != nil {
+		return err
+	}
+	if c.Version == "" {
+		return fmt.Errorf("missing version in kafka config")
+	}
+	if c.Brokers == nil {
+		return fmt.Errorf("missing brokers in kafka config")
+	}
+	if c.Topic == "" {
+		return fmt.Errorf("missing topic in kafka config")
+	}
+	return nil
+}
+
+type KafkaNetConfig struct {
+	SASL         *SASL         `json:"sasl" yaml:"sasl"`
+	DialTimeout  time.Duration `json:"dial_timeout,omitempty" yaml:"dial_timeout,omitempty"`
+	ReadTimeout  time.Duration `json:"read_timeout,omitempty" yaml:"read_timeout,omitempty"`
+	WriteTimeout time.Duration `json:"write_timeout,omitempty" yaml:"write_timeout,omitempty"`
+}
+type SASL struct {
+	Enabled                  bool   `json:"enabled" yaml:"enabled"`
+	Username                 string `json:"username" yaml:"username"`
+	Password                 string `json:"password" yaml:"password"`
+	SCRAMClientGeneratorFunc string `json:"scram_client_generator_func" yaml:"scram_client_generator_func"`
+}
+
+type RequiredAckCode int8
+
+func (ra RequiredAckCode) GetAck() sarama.RequiredAcks {
+	return []sarama.RequiredAcks{
+		sarama.NoResponse,
+		sarama.WaitForAll,
+		sarama.WaitForLocal,
+	}[int(ra)]
+}
+
+type KafkaVersion string
+
+func (kv KafkaVersion) GetVersion() sarama.KafkaVersion {
+	switch kv {
+	case "V2_6_0_0":
+		return sarama.V2_6_0_0
+	case "V2_5_0_0":
+		return sarama.V2_5_0_0
+	case "V2_4_0_0":
+		return sarama.V2_4_0_0
+	case "V2_3_0_0":
+		return sarama.V2_3_0_0
+	case "V2_2_0_0":
+		return sarama.V2_2_0_0
+	case "V2_1_0_0":
+		return sarama.V2_1_0_0
+	case "V2_0_1_0":
+		return sarama.V2_0_1_0
+	case "V2_0_0_0":
+		return sarama.V2_0_0_0
+	case "V1_1_1_0":
+		return sarama.V2_5_0_0
+	case "V1_1_0_0":
+		return sarama.V1_1_0_0
+	case "V1_0_0_0":
+		return sarama.V1_0_0_0
+	default:
+		return sarama.V0_11_0_2
+	}
+}
+
+type Producer struct {
+	MaxMessageBytes int             `json:"max_message_bytes" yaml:"max_message_bytes"`
+	RequiredAcks    RequiredAckCode `json:"required_acks" yaml:"required_acks"`
+	RetryMax        int             `json:"retry_max" yaml:"retry_max"`
 }

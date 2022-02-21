@@ -1,6 +1,7 @@
 module github.com/prometheus/alertmanager
 
 require (
+	github.com/Shopify/sarama v1.31.1
 	github.com/alecthomas/units v0.0.0-20210208195552-ff826a37aa15
 	github.com/aws/aws-sdk-go v1.40.11
 	github.com/cenkalti/backoff/v4 v4.1.1
@@ -16,7 +17,6 @@ require (
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/go-sockaddr v1.0.2
-	github.com/hashicorp/go-uuid v1.0.1 // indirect
 	github.com/hashicorp/memberlist v0.2.4
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/kylelemons/godebug v1.1.0
@@ -35,7 +35,7 @@ require (
 	github.com/xlab/treeprint v1.1.0
 	go.uber.org/atomic v1.9.0
 	golang.org/x/mod v0.4.2
-	golang.org/x/net v0.0.0-20210726213435-c6fcb2dbf985
+	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 	golang.org/x/tools v0.1.5
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0

@@ -245,6 +245,10 @@ func resolveFilepaths(baseDir string, cfg *Config) {
 		for _, cfg := range receiver.SNSConfigs {
 			cfg.HTTPConfig.SetDirectory(baseDir)
 		}
+
+		/*for _, cfg := range receiver.KafkaConfigs {
+			cfg.HTTPConfig.SetDirectory(baseDir)
+		}*/
 	}
 }
 
@@ -793,6 +797,8 @@ type Receiver struct {
 	PushoverConfigs  []*PushoverConfig  `yaml:"pushover_configs,omitempty" json:"pushover_configs,omitempty"`
 	VictorOpsConfigs []*VictorOpsConfig `yaml:"victorops_configs,omitempty" json:"victorops_configs,omitempty"`
 	SNSConfigs       []*SNSConfig       `yaml:"sns_configs,omitempty" json:"sns_configs,omitempty"`
+
+	KafkaConfigs []*KafkaConfig `yaml:"kafka_configs,omitempty" json:"kafka_configs,omitempty"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for Receiver.
